@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hopeso土豆服务器地图</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 顶部标题栏 */
+  .header {
+    min-height: 56px;
+    background: linear-gradient(90deg, #161b22, #1c2128);
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #58a6ff, #79c0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .version-badge {
+    margin-left: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #d29922;
+    background: rgba(210, 153, 34, 0.12);
+    border: 1px solid rgba(210, 153, 34, 0.35);
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+  }
+  .header .spacer { flex: 1; }
+
+  /* 日期选择器 */
+  .date-picker-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 16px;
+  }
+  .date-picker-wrap label {
+    font-size: 13px;
+    color: #8b949e;
+  }
+  .date-picker {
+    color-scheme: dark;
+    background: #161b22;
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  .date-picker:hover { border-color: #58a6ff; }
+  .date-picker:focus { border-color: #58a6ff; box-shadow: 0 0 0 2px rgba(88,166,255,0.2); }
+  .date-picker::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+
+  /* 工具栏 */
+  .toolbar {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .btn {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #30363d;
+    background: #161b22;
+    color: #e6edf3;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .btn:hover { background: #1f2937; border-color: #58a6ff; transform: translateY(-1px); }
+  .btn:active { transform: scale(0.95); }
+  .btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+  /* 地图容器 */
+  .map-wrapper {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+    -webkit-user-drag: none;
+    background:
+      linear-gradient(#0d1117, #0d1117),
+      repeating-linear-gradient(0deg, #161b22 0 2px, transparent 2px 40px),
+      repeating-linear-gradient(90deg, #161b22 0 2px, transparent 2px 40px);
+  }
+  .map-wrapper:active { cursor: grabbing; }
+
+  .map-stage {
+    position: absolute;
+    top: 0; left: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  .map-stage img {
+    display: block;
+    max-width: none;
+    pointer-events: none;
+  }
+
+  /* 缩放指示 */
+  .zoom-info {
+    position: absolute;
+    bottom: 16px;
+    left: 20px;
+    background: rgba(22, 27, 34, 0.85);
+    border: 1px solid #30363d;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #8b949e;
+    backdrop-filter: blur(4px);
+  }
+  .zoom-info span { color: #58a6ff; font-weight: 600; }
+
+  /* 空状态 */
+  .empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8b949e;
+    text-align: center;
+    gap: 16px;
+    pointer-events: none;
+  }
+  .empty .icon { font-size: 48px; opacity: 0.4; }
+  .empty p { font-size: 14px; }
+
+  .hidden { display: none !important; }
+
+  /* ========== 移动端适配（≤768px） ========== */
+  @media (max-width: 768px) {
+    .header {
+      padding: 8px 12px;
+      gap: 6px 10px;
+    }
+    .header h1 {
+      font-size: 16px;
+      letter-spacing: 0.5px;
+    }
+    .version-badge {
+      margin-left: 0;
+      font-size: 11px;
+      padding: 2px 8px;
+    }
+    /* 日期选择器占满换行后的整行 */
+    .date-picker-wrap {
+      margin-right: 0;
+      width: 100%;
+      order: 3;
+    }
+    .date-picker {
+      flex: 1;
+      min-width: 0;
+      font-size: 14px;
+      padding: 8px 10px;
+    }
+    /* 工具栏按钮稍小，贴边 */
+    .toolbar {
+      top: 12px;
+      right: 12px;
+      gap: 6px;
+    }
+    .btn {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+    /* 缩放信息缩小 */
+    .zoom-info {
+      bottom: 12px;
+      left: 12px;
+      font-size: 11px;
+      padding: 5px 10px;
+    }
+    /* 空状态文字缩小 */
+    .empty .icon { font-size: 40px; }
+    .empty p { font-size: 13px; }
+  }
+
+  /* ========== 小屏手机（≤480px） ========== */
+  @media (max-width: 480px) {
+    .header h1 { font-size: 15px; }
+    .version-badge { font-size: 10px; padding: 2px 7px; }
+    .date-picker-wrap label { font-size: 12px; }
+    .btn { width: 38px; height: 38px; font-size: 17px; }
+    .zoom-info { font-size: 10px; }
+    .empty p { font-size: 12px; }
+  }
+
+  /* ========== 横屏手机优化 ========== */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .header { padding: 6px 12px; }
+    .header h1 { font-size: 15px; }
+    .date-picker-wrap { margin-right: 0; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Hopeso土豆服务器地图</h1>
+    <span class="version-badge" id="versionBadge"></span>
+    <div class="spacer"></div>
+    <div class="date-picker-wrap">
+      <label for="datePicker">日期:</label>
+      <input type="date" id="datePicker" class="date-picker">
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn" id="zoomIn" title="放大">＋</button>
+    <button class="btn" id="zoomOut" title="缩小">－</button>
+    <button class="btn" id="reset" title="重置">⟳</button>
+  </div>
+
+  <div class="map-wrapper" id="wrapper">
+    <div class="map-stage" id="stage">
+      <img id="mapImg" alt="地图">
+    </div>
+    <div class="empty" id="empty">
+      <div class="icon">🗺️</div>
+      <p>未找到地图图片<br>请将地图命名为 map.png 放在同目录</p>
+    </div>
+  </div>
+
+  <div class="zoom-info">缩放: <span id="zoomVal">100</span>%</div>
+
+<script>
+(function () {
+  // 单一版本源：修改版本号只需改此处
+  const VERSION = 'beta1';
+  document.getElementById('versionBadge').textContent = VERSION;
+  document.title = `Hopeso土豆服务器地图 (${VERSION})`;
+
+  const wrapper = document.getElementById('wrapper');
+  const stage = document.getElementById('stage');
+  const img = document.getElementById('mapImg');
+  const zoomInBtn = document.getElementById('zoomIn');
+  const zoomOutBtn = document.getElementById('zoomOut');
+  const resetBtn = document.getElementById('reset');
+  const zoomVal = document.getElementById('zoomVal');
+  const empty = document.getElementById('empty');
+  const datePicker = document.getElementById('datePicker');
+
+  let scale = 1;
+  let tx = 0, ty = 0;
+  const MIN_SCALE = 0.1;
+  const MAX_SCALE = 20;
+
+  function applyTransform() {
+    stage.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+    zoomVal.textContent = Math.round(scale * 100);
+  }
+
+  function fitToScreen() {
+    if (!img.naturalWidth) {
+      // 没有图片时重置回初始状态
+      scale = 1;
+      tx = 0;
+      ty = 0;
+      applyTransform();
+      return;
+    }
+    const w = wrapper.clientWidth;
+    const h = wrapper.clientHeight;
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+    scale = Math.min(w / iw, h / ih, 1);
+    tx = (w - iw * scale) / 2;
+    ty = (h - ih * scale) / 2;
+    applyTransform();
+  }
+
+  function zoomAt(factor, cx, cy) {
+    const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * factor));
+    const realFactor = newScale / scale;
+    // 以鼠标点(cx, cy)为中心缩放
+    tx = cx - (cx - tx) * realFactor;
+    ty = cy - (cy - ty) * realFactor;
+    scale = newScale;
+    applyTransform();
+  }
+
+  // 当前尝试加载的地图文件名（用于空状态提示）
+  let currentMapName = 'map.png';
+
+  // 加载指定日期的地图：map_YYYY-MM-DD.png；无日期则加载 map.png
+  function loadMap(dateStr) {
+    currentMapName = dateStr ? `map_${dateStr}.png` : 'map.png';
+    img.src = currentMapName;
+  }
+
+  img.addEventListener('load', function () {
+    empty.classList.add('hidden');
+    fitToScreen();
+  });
+  img.addEventListener('error', function () {
+    empty.classList.remove('hidden');
+    empty.querySelector('p').innerHTML = `未找到 <b>${currentMapName}</b><br>请将该日期的地图放在同目录`;
+  });
+
+  // 日期选择变化时加载对应地图
+  datePicker.addEventListener('change', () => {
+    loadMap(datePicker.value);
+  });
+  // 点击输入框任意位置唤起日期选择器
+  datePicker.addEventListener('click', () => {
+    if (datePicker.showPicker) datePicker.showPicker();
+  });
+
+  // 初始化：默认选中今天，加载当天地图
+  const today = new Date().toISOString().split('T')[0];
+  datePicker.value = today;
+  loadMap(today);
+
+  // 鼠标滚轮缩放
+  wrapper.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = wrapper.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    zoomAt(factor, cx, cy);
+  }, { passive: false });
+
+  // 拖拽平移
+  let dragging = false, sx = 0, sy = 0, sTx = 0, sTy = 0;
+  wrapper.addEventListener('mousedown', (e) => {
+    dragging = true;
+    sx = e.clientX; sy = e.clientY;
+    sTx = tx; sTy = ty;
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    tx = sTx + (e.clientX - sx);
+    ty = sTy + (e.clientY - sy);
+    applyTransform();
+  });
+  window.addEventListener('mouseup', () => { dragging = false; });
+
+  // 按钮缩放（以容器中心为基准）
+  function centerZoom(factor) {
+    const cx = wrapper.clientWidth / 2;
+    const cy = wrapper.clientHeight / 2;
+    zoomAt(factor, cx, cy);
+  }
+  zoomInBtn.addEventListener('click', () => centerZoom(1.25));
+  zoomOutBtn.addEventListener('click', () => centerZoom(1 / 1.25));
+  resetBtn.addEventListener('click', fitToScreen);
+
+  // 触摸支持（双指缩放 + 单指拖动）
+  let touches = [];
+  wrapper.addEventListener('touchstart', (e) => {
+    touches = Array.from(e.touches);
+    if (touches.length === 1) {
+      dragging = true;
+      sx = touches[0].clientX; sy = touches[0].clientY;
+      sTx = tx; sTy = ty;
+    }
+  }, { passive: true });
+  wrapper.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const t = Array.from(e.touches);
+    if (t.length === 1 && dragging) {
+      tx = sTx + (t[0].clientX - sx);
+      ty = sTy + (t[0].clientY - sy);
+      applyTransform();
+    } else if (t.length === 2 && touches.length === 2) {
+      const rect = wrapper.getBoundingClientRect();
+      const cx = (t[0].clientX + t[1].clientX) / 2 - rect.left;
+      const cy = (t[0].clientY + t[1].clientY) / 2 - rect.top;
+      const distNow = Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+      const distOld = Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+      if (distOld > 0) zoomAt(distNow / distOld, cx, cy);
+    }
+    touches = t;
+  }, { passive: false });
+  wrapper.addEventListener('touchend', () => {
+    dragging = false;
+    touches = Array.from(wrapper.querySelectorAll ? [] : []);
+  });
+
+  // 窗口尺寸/方向变化时重新自适应（移动端横竖屏切换）
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (img.naturalWidth) fitToScreen();
+    }, 150);
+  });
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => { if (img.naturalWidth) fitToScreen(); }, 200);
+  });
+})();
+</script>
+</body>
+</html>
