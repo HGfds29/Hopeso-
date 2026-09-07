@@ -50,7 +50,7 @@
         .header .spacer { flex: 1; }
 
         /* 顶部按钮通用样式 */
-        .log-btn, .feedback-btn {
+        .log-btn, .feedback-btn, .admin-btn {
             display: flex;
             align-items: center;
             gap: 5px;
@@ -67,14 +67,15 @@
             letter-spacing: 0.5px;
             white-space: nowrap;
             -webkit-tap-highlight-color: transparent;
+            text-decoration: none;
         }
-        .log-btn:hover, .feedback-btn:hover {
+        .log-btn:hover, .feedback-btn:hover, .admin-btn:hover {
             background: rgba(88,166,255,0.18);
             border-color: #58a6ff;
             box-shadow: 0 0 12px rgba(88,166,255,0.25);
         }
-        .log-btn:active, .feedback-btn:active { transform: scale(0.96); }
-        .log-btn .icon, .feedback-btn .icon { font-size: 16px; line-height: 1; }
+        .log-btn:active, .feedback-btn:active, .admin-btn:active { transform: scale(0.96); }
+        .log-btn .icon, .feedback-btn .icon, .admin-btn .icon { font-size: 16px; line-height: 1; }
 
         /* 日期下拉菜单 */
         .date-picker-wrap { display: flex; align-items: center; gap: 8px; }
@@ -171,6 +172,31 @@
         .empty .icon { font-size: 48px; opacity: 0.4; }
         .empty p { font-size: 14px; }
         .hidden { display: none !important; }
+
+        /* 加载指示器 */
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: #8b949e;
+            font-size: 14px;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(88,166,255,0.2);
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* 更新日志弹窗 & 反馈弹窗 */
         .log-modal-overlay, .feedback-modal-overlay {
@@ -282,12 +308,34 @@
         .feedback-btn-api { background: rgba(240,136,62,0.1); border-color: rgba(240,136,62,0.3); color: #f0883e; }
         .feedback-btn-api:hover { background: rgba(240,136,62,0.18); }
 
+        /* 管理员信息展示 */
+        .admin-contact-list {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(88,166,255,0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(88,166,255,0.2);
+        }
+        .admin-contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #c9d1d9;
+            padding: 4px 0;
+        }
+        .admin-contact-item a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+        .admin-contact-item a:hover { text-decoration: underline; }
+
         /* 移动端适配 */
         @media (max-width: 768px) {
             .header { padding: 8px 12px; gap: 6px 10px; }
             .header h1 { font-size: 16px; }
             .version-badge { font-size: 11px; padding: 2px 8px; }
-            .log-btn, .feedback-btn { padding: 5px 10px; font-size: 12px; gap: 4px; }
+            .log-btn, .feedback-btn, .admin-btn { padding: 5px 10px; font-size: 12px; gap: 4px; }
             .date-picker-wrap { width: 100%; order: 3; }
             .date-picker { flex: 1; min-width: 0; font-size: 14px; padding: 8px 10px; }
             .toolbar { top: 12px; right: 12px; gap: 6px; }
@@ -300,7 +348,7 @@
         }
         @media (max-width: 480px) {
             .header h1 { font-size: 15px; }
-            .log-btn, .feedback-btn { font-size: 11px; padding: 4px 8px; }
+            .log-btn, .feedback-btn, .admin-btn { font-size: 11px; padding: 4px 8px; }
             .btn { width: 38px; height: 38px; font-size: 17px; }
             .zoom-info { font-size: 10px; }
             .feedback-btn-copy, .feedback-btn-github, .feedback-btn-api { font-size: 12px; padding: 6px 12px; }
@@ -320,6 +368,10 @@
             <span class="icon">💬</span>
             <span>网站反馈</span>
         </button>
+        <a class="admin-btn" href="admin.html" target="_blank" title="管理员页面">
+            <span class="icon">🛠️</span>
+            <span>管理员</span>
+        </a>
         <div class="date-picker-wrap">
             <label for="datePicker">日期:</label>
             <select id="datePicker" class="date-picker" disabled>
@@ -342,6 +394,10 @@
         <div class="empty" id="empty">
             <div class="icon">🧩</div>
             <p>当前区域暂时没有绘图</p>
+        </div>
+        <div class="loading-indicator hidden" id="loadingIndicator">
+            <div class="spinner"></div>
+            <span>地图加载中...</span>
         </div>
     </div>
 
@@ -370,7 +426,10 @@
                     <span class="warning-icon">⚠️</span>
                     <span>fine-grained token 随时可能过期，如果无法正常提交反馈，请联系管理员。</span>
                 </div>
-                <p style="font-size:14px; color:#8b949e; margin-bottom:12px;">您可以选择复制模板手动提交，或使用下方按钮通过 API 直接提交（测试功能，存在安全风险）。</p>
+                <div class="admin-contact-list" id="adminContactList" style="display:none;">
+                    <div style="font-weight:600; margin-bottom:6px;">联系管理员：</div>
+                </div>
+                <p style="font-size:14px; color:#8b949e; margin-bottom:12px; margin-top:12px;">您可以选择复制模板手动提交，或使用下方按钮通过 API 直接提交（测试功能，存在安全风险）。</p>
                 <div class="feedback-template" id="feedbackTemplate"></div>
                 <div class="feedback-actions">
                     <button class="feedback-btn-copy" id="copyFeedback">📋 复制反馈内容</button>
@@ -383,22 +442,52 @@
 
     <script>
     (function() {
-        const VERSION = 'beta2.0';
+        const VERSION = 'beta2.4';
         document.getElementById('versionBadge').textContent = VERSION;
         document.title = `Hopeso土豆服务器地图 (${VERSION})`;
 
-        // ================= 完整更新日志（从 beta1.0 到 beta2.0） =================
+        // ================= 完整更新日志（从 beta1.0 到 beta2.4） =================
         const CHANGELOG = [
+            {
+                version: 'beta2.4',
+                date: '2026-09-07',
+                current: true,
+                changes: [
+                    { type: 'fix', text: '更新 GitHub Fine-grained Token，修复无法提交反馈的问题' }
+                ]
+            },
+            {
+                version: 'beta2.3',
+                date: '2026-09-07',
+                current: false,
+                changes: [
+                    { type: 'new', text: '新增管理员配置：读取 cfg/管理员.json 并在反馈弹窗显示联系方式' },
+                    { type: 'new', text: '新增管理员入口按钮，跳转至 admin.html 管理页面' }
+                ]
+            },
+            {
+                version: 'beta2.2',
+                date: '2026-09-07',
+                current: false,
+                changes: [
+                    { type: 'new', text: '地图图片路径改为 map/ 子目录，日期配置路径改为 cfg/ 子目录' }
+                ]
+            },
+            {
+                version: 'beta2.1',
+                date: '2026-09-06',
+                current: false,
+                changes: [
+                    { type: 'opt', text: '优化地图加载速度：新增图片缓存，避免重复请求' },
+                    { type: 'new', text: '添加加载指示器' }
+                ]
+            },
             {
                 version: 'beta2.0',
                 date: '2026-09-06',
-                current: true,
+                current: false,
                 changes: [
-                    { type: 'new', text: '整体升级至 beta2.0，优化代码结构与性能' },
-                    { type: 'new', text: '改进地图加载速度，增加缓存策略' },
-                    { type: 'fix', text: '修复部分移动设备上缩放异常的问题' },
-                    { type: 'opt', text: '优化反馈弹窗的交互体验' },
-                    { type: 'ui', text: '微调界面细节，提升视觉一致性' }
+                    { type: 'new', text: '整体升级至 beta2.0，优化代码结构与性能' }
                 ]
             },
             {
@@ -406,8 +495,7 @@
                 date: '2026-09-06',
                 current: false,
                 changes: [
-                    { type: 'new', text: '新增通过 GitHub API 直接提交 Issue 的测试功能（需手动配置 token）' },
-                    { type: 'fix', text: '修复反馈弹窗在移动端的显示问题' }
+                    { type: 'new', text: '新增通过 GitHub API 直接提交 Issue 的测试功能' }
                 ]
             },
             {
@@ -415,7 +503,7 @@
                 date: '2026-09-06',
                 current: false,
                 changes: [
-                    { type: 'new', text: '反馈弹窗增加警告：fine-grained token 可能过期，无法提交时请联系管理员' }
+                    { type: 'new', text: '反馈弹窗增加警告：fine-grained token 可能过期' }
                 ]
             },
             {
@@ -423,8 +511,7 @@
                 date: '2026-09-06',
                 current: false,
                 changes: [
-                    { type: 'new', text: '反馈按钮改为弹出模态框，不再自动跳转' },
-                    { type: 'ui', text: '新增反馈弹窗样式，与更新日志风格统一' }
+                    { type: 'new', text: '反馈按钮改为弹出模态框，不再自动跳转' }
                 ]
             },
             {
@@ -432,7 +519,7 @@
                 date: '2026-09-06',
                 current: false,
                 changes: [
-                    { type: 'new', text: '新增「网站反馈」按钮，可直接跳转 GitHub Issue 提交反馈' }
+                    { type: 'new', text: '新增「网站反馈」按钮' }
                 ]
             },
             {
@@ -448,8 +535,7 @@
                 date: '2026-09-06',
                 current: false,
                 changes: [
-                    { type: 'ui', text: '地图未覆盖区域改为棋盘格块状背景' },
-                    { type: 'ui', text: '空状态图标更改为拼图块' }
+                    { type: 'ui', text: '地图未覆盖区域改为棋盘格块状背景' }
                 ]
             },
             {
@@ -457,8 +543,7 @@
                 date: '2026-09-06',
                 current: false,
                 changes: [
-                    { type: 'new', text: '日期选项改为从「地图日期.json」文件动态读取' },
-                    { type: 'opt', text: '优化日期下拉菜单的加载状态与错误提示' }
+                    { type: 'new', text: '日期选项改为从「地图日期.json」文件动态读取' }
                 ]
             },
             {
@@ -466,10 +551,7 @@
                 date: '2026-09-05',
                 current: false,
                 changes: [
-                    { type: 'new', text: '新增版本更新日志弹窗，点击顶部「更新日志」按钮即可查看' },
-                    { type: 'fix', text: '修复移动端日期选择器在部分浏览器上的显示异常' },
-                    { type: 'opt', text: '优化地图加载失败时的提示信息展示' },
-                    { type: 'ui', text: '调整顶部标题栏布局，适配更小屏幕尺寸' }
+                    { type: 'new', text: '新增版本更新日志弹窗' }
                 ]
             },
             {
@@ -477,10 +559,7 @@
                 date: '2026-08-28',
                 current: false,
                 changes: [
-                    { type: 'new', text: '首次发布，支持按日期加载服务器地图' },
-                    { type: 'new', text: '支持鼠标滚轮缩放、拖拽平移地图' },
-                    { type: 'new', text: '支持移动端双指缩放与单指拖动' },
-                    { type: 'ui', text: '全新暗色主题界面，针对移动端深度优化' }
+                    { type: 'new', text: '首次发布' }
                 ]
             }
         ];
@@ -506,6 +585,12 @@
         const copyFeedbackBtn = document.getElementById('copyFeedback');
         const openGithubBtn = document.getElementById('openGithubIssue');
         const submitApiBtn = document.getElementById('submitApiIssue');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const adminContactList = document.getElementById('adminContactList');
+
+        // ================= 路径常量 =================
+        const MAP_DIR = 'map/';
+        const CFG_DIR = 'cfg/';
 
         // ================= 更新日志弹窗 =================
         function renderChangelog() {
@@ -564,6 +649,7 @@
             feedbackTemplate.textContent = body;
             feedbackOverlay.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
+            loadAdminContacts();
         }
         function closeFeedbackModal() {
             feedbackOverlay.classList.add('hidden');
@@ -575,7 +661,36 @@
             if (e.target === feedbackOverlay) closeFeedbackModal();
         });
 
-        // 复制反馈内容
+        // ================= 加载管理员信息 =================
+        let adminContactsLoaded = false;
+        async function loadAdminContacts() {
+            if (adminContactsLoaded) return;
+            try {
+                const response = await fetch(CFG_DIR + '管理员.json');
+                if (!response.ok) throw new Error('管理员配置加载失败');
+                const data = await response.json();
+                const admins = data.admins || [];
+                if (admins.length > 0) {
+                    let html = '<div style="font-weight:600; margin-bottom:6px;">联系管理员：</div>';
+                    admins.forEach(admin => {
+                        html += `<div class="admin-contact-item">
+                            <span>👤 ${admin.name}</span>
+                            ${admin.role ? `<span style="color:#8b949e;">(${admin.role})</span>` : ''}
+                            ${admin.github ? `<a href="https://github.com/${admin.github}" target="_blank">GitHub</a>` : ''}
+                            ${admin.email ? `<a href="mailto:${admin.email}">邮箱</a>` : ''}
+                        </div>`;
+                    });
+                    adminContactList.innerHTML = html;
+                    adminContactList.style.display = 'block';
+                    adminContactsLoaded = true;
+                }
+            } catch (error) {
+                console.warn('无法加载管理员信息:', error);
+                adminContactList.style.display = 'none';
+            }
+        }
+
+        // ================= 复制反馈内容 =================
         copyFeedbackBtn.addEventListener('click', async () => {
             const text = feedbackTemplate.textContent;
             try {
@@ -594,7 +709,7 @@
             }
         });
 
-        // 打开 GitHub Issue 页面（手动）
+        // ================= 打开 GitHub Issue 页面（手动） =================
         openGithubBtn.addEventListener('click', () => {
             const baseUrl = `https://github.com/${currentRepo}/issues/new`;
             const params = new URLSearchParams({ title: currentTitle, body: feedbackTemplate.textContent });
@@ -603,7 +718,7 @@
 
         // ================= 直接通过 GitHub API 提交 Issue =================
         // ⚠️ 警告：以下 token 仅用于测试，请勿在生产环境使用！
-        const GITHUB_TOKEN = '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'; // 请替换为安全的 token 或通过后端获取
+        const GITHUB_TOKEN = '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'; // 已更新
         const REPO_OWNER = 'HGfds29';
         const REPO_NAME = 'Hopeso-';
 
@@ -642,10 +757,57 @@
             }
         });
 
+        // ================= 地图加载优化：缓存与加载指示器 =================
+        const mapCache = new Map();
+
+        function showLoading() {
+            loadingIndicator.classList.remove('hidden');
+        }
+        function hideLoading() {
+            loadingIndicator.classList.add('hidden');
+        }
+
+        async function fitToScreenAfterDecode() {
+            try {
+                if (img.decode) {
+                    await img.decode();
+                }
+                fitToScreen();
+            } catch (error) {
+                console.warn('图片解码失败，直接适配:', error);
+                fitToScreen();
+            }
+        }
+
+        function loadMap(dateStr) {
+            const mapUrl = MAP_DIR + 'map_' + dateStr + '.png';
+
+            if (mapCache.has(mapUrl)) {
+                img.src = mapUrl;
+                hideLoading();
+                fitToScreenAfterDecode();
+                return;
+            }
+
+            showLoading();
+            img.src = mapUrl;
+            img.onload = function() {
+                mapCache.set(mapUrl, true);
+                hideLoading();
+                empty.classList.add('hidden');
+                fitToScreenAfterDecode();
+            };
+            img.onerror = function() {
+                hideLoading();
+                empty.classList.remove('hidden');
+                empty.querySelector('p').textContent = '当前区域暂时没有绘图';
+            };
+        }
+
         // ================= 日期加载与地图逻辑 =================
         async function loadDateList() {
             try {
-                const response = await fetch('地图日期.json');
+                const response = await fetch(CFG_DIR + '地图日期.json');
                 if (!response.ok) throw new Error('网络响应失败');
                 const data = await response.json();
                 let dates = Array.isArray(data) ? data : (data.dates || []);
@@ -668,14 +830,15 @@
                     loadMap(dates[0]);
                 }
             } catch (error) {
-                console.error('读取地图日期.json失败:', error);
+                console.error('读取日期配置失败:', error);
                 datePicker.innerHTML = '<option>日期列表加载失败</option>';
                 datePicker.disabled = true;
                 empty.classList.remove('hidden');
-                empty.querySelector('p').textContent = '日期列表加载失败，请检查地图日期.json文件';
+                empty.querySelector('p').textContent = '日期列表加载失败，请检查 cfg/地图日期.json 文件';
             }
         }
 
+        // ================= 地图缩放与平移 =================
         let scale = 1, tx = 0, ty = 0;
         const MIN_SCALE = 0.1, MAX_SCALE = 20;
         function applyTransform() {
@@ -699,19 +862,15 @@
             scale = newScale;
             applyTransform();
         }
-        function loadMap(dateStr) { img.src = `map_${dateStr}.png`; }
-        img.addEventListener('load', () => { empty.classList.add('hidden'); fitToScreen(); });
-        img.addEventListener('error', () => { empty.classList.remove('hidden'); empty.querySelector('p').textContent = '当前区域暂时没有绘图'; });
+
         datePicker.addEventListener('change', () => loadMap(datePicker.value));
 
-        // 鼠标滚轮缩放
         wrapper.addEventListener('wheel', e => {
             e.preventDefault();
             const rect = wrapper.getBoundingClientRect();
             zoomAt(e.deltaY < 0 ? 1.15 : 1/1.15, e.clientX - rect.left, e.clientY - rect.top);
         }, { passive: false });
 
-        // 拖拽平移
         let dragging = false, sx = 0, sy = 0, sTx = 0, sTy = 0;
         wrapper.addEventListener('mousedown', e => { dragging = true; sx = e.clientX; sy = e.clientY; sTx = tx; sTy = ty; });
         window.addEventListener('mousemove', e => { if (!dragging) return; tx = sTx + (e.clientX - sx); ty = sTy + (e.clientY - sy); applyTransform(); });
@@ -722,7 +881,6 @@
         zoomOutBtn.addEventListener('click', () => centerZoom(1/1.25));
         resetBtn.addEventListener('click', fitToScreen);
 
-        // 触摸支持
         let touches = [];
         wrapper.addEventListener('touchstart', e => {
             touches = Array.from(e.touches);
@@ -744,7 +902,6 @@
         }, { passive: false });
         wrapper.addEventListener('touchend', () => { dragging = false; touches = []; });
 
-        // 窗口尺寸变化
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);

@@ -1,0 +1,16 @@
+{
+  "admins": [
+    {
+      "name": "Hopeso管理员ZhuYuhao",
+      "github": "no-github",
+      "email": "no-email",
+      "role": "服务器管理员"
+    },
+    {
+      "name": "鸡蛋-网站制作",
+      "github": "HGfds29",
+      "email": "3656754515@qq.com",
+      "role": "网站制作"
+    }
+  ]
+}
