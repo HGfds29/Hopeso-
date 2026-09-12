@@ -77,8 +77,6 @@
         }
         .log-btn:active, .feedback-btn:active, .admin-btn:active { transform: scale(0.96); }
         .log-btn .icon, .feedback-btn .icon, .admin-btn .icon { font-size: 16px; line-height: 1; }
-        .log-btn .icon:empty, .feedback-btn .icon:empty, .admin-btn .icon:empty { display: none; }
-        .warning-icon:empty { display: none; }
 
         /* 日期下拉菜单 */
         .date-picker-wrap { display: flex; align-items: center; gap: 8px; }
@@ -364,15 +362,12 @@
         <span class="version-badge" id="versionBadge"></span>
         <div class="spacer"></div>
         <button class="log-btn" id="logBtn" title="查看更新日志">
-            <span class="icon"></span>
             <span>更新日志</span>
         </button>
         <button class="feedback-btn" id="feedbackBtn" title="提交网站反馈">
-            <span class="icon"></span>
             <span>网站反馈</span>
         </button>
         <a class="admin-btn" href="admin.html" target="_blank" title="管理员页面">
-            <span class="icon"></span>
             <span>管理员</span>
         </a>
         <div class="date-picker-wrap">
@@ -425,7 +420,6 @@
             </div>
             <div class="feedback-modal-body">
                 <div class="feedback-warning">
-                    <span class="warning-icon"></span>
                     <span>fine-grained token 随时可能过期，如果无法正常提交反馈，请联系管理员。</span>
                 </div>
                 <div class="admin-contact-list" id="adminContactList" style="display:none;">
