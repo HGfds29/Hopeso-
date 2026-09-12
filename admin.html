@@ -5,180 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hopeso管理员面板</title>
     <style>
-        /* 极简 CSS */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-        }
-        h1, h2, h3 { color: #2c3e50; margin-bottom: 10px; }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .section {
-            margin-bottom: 25px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background: #fafafa;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 5px; }
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #fafafa; }
         .hidden { display: none; }
-        input[type="text"], input[type="password"], input[type="date"], select, textarea {
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            width: 100%;
-            max-width: 300px;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 8px 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px 0;
-        }
-        button:hover { background-color: #2980b9; }
-        ul { list-style: none; padding: 0; }
-        li { padding: 5px 0; border-bottom: 1px solid #eee; }
-        a { color: #3498db; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .error { color: #e74c3c; margin-top: 5px; }
-        .success { color: #27ae60; margin-top: 5px; }
-        .token-section {
-            background: #fef9e7;
-            border: 1px solid #f1c40f;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .admin-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .admin-item span { min-width: 80px; }
+        input[type="password"], input[type="date"], input[type="file"] { padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 300px; }
+        button { padding: 8px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px 0; }
+        .error { color: #e74c3c; }
+        .success { color: #27ae60; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🛠️ Hopeso 管理员面板</h1>
+        <h1>Hopeso map管理员面板</h1>
 
         <div id="loginSection" class="section">
             <h2>登录</h2>
             <input type="password" id="passwordInput" placeholder="请输入管理员密码">
-            <button onclick="login()">登录</button>
+            <button id="loginButton">登录</button>
             <div id="loginError" class="error"></div>
         </div>
 
         <div id="adminContent" class="hidden">
             <div class="section">
-                <h2>👤 管理员列表</h2>
+                <h2>管理员列表</h2>
                 <div id="adminList">加载中...</div>
             </div>
-
-            <div class="section token-section">
-                <h2>🔑 GitHub Token 设置</h2>
-                <p>用于通过 GitHub API 修改配置文件。请使用具有 repo 权限的 Fine-grained Token。</p>
-                <input type="password" id="githubTokenInput" placeholder="粘贴您的 GitHub Token" style="width:100%; max-width:400px;">
-                <button onclick="saveToken()">保存 Token</button>
-                <div id="tokenStatus"></div>
-            </div>
-
             <div class="section">
-                <h2>📅 日期管理</h2>
+                <h2>日期管理</h2>
                 <div id="dateList">加载中...</div>
-                <hr>
-                <h3>添加新日期</h3>
                 <input type="date" id="newDateInput">
-                <button onclick="addDate()">添加到列表</button>
-                <button onclick="saveDates()">保存更改到服务器</button>
+                <button id="addDateBtn">添加日期</button>
+                <button id="saveDatesBtn">保存到数据库</button>
                 <div id="dateMessage"></div>
             </div>
-
             <div class="section">
-                <h2>🖼️ 地图图片上传</h2>
-                <p>选择图片并指定日期，将上传到 <code>map/map_YYYY-MM-DD.png</code></p>
+                <h2>地图上传</h2>
                 <input type="date" id="uploadDateInput">
                 <input type="file" id="mapFileInput" accept="image/*">
-                <button onclick="uploadMap()">上传地图</button>
+                <button id="uploadMapBtn">上传地图</button>
                 <div id="uploadMessage"></div>
             </div>
-
             <div class="section">
-                <h2>🐙 仓库 Open Issues</h2>
-                <button onclick="loadIssues()">加载 Issues</button>
-                <div id="issuesList">点击按钮加载</div>
-            </div>
-
-            <div class="section">
-                <h2>🚧 维护模式</h2>
-                <p>当前状态：<span id="maintenanceStatus">未知</span></p>
-                <button onclick="toggleMaintenance()">切换维护模式</button>
+                <h2>维护模式</h2>
+                <p>状态：<span id="maintenanceStatus">未知</span></p>
+                <button id="toggleMaintenanceBtn">切换维护模式</button>
                 <div id="maintenanceMessage"></div>
             </div>
-
-            <div class="section">
-                <h2>📊 访问统计（本地模拟）</h2>
-                <p>当前页面访问次数：<span id="visitCount">0</span></p>
-            </div>
-
-            <div class="section">
-                <h2>🔗 快速链接</h2>
-                <a href="index.html" target="_blank">返回主地图</a> |
-                <a href="https://github.com/HGfds29/Hopeso-" target="_blank">GitHub 仓库</a>
-            </div>
-
-            <button onclick="logout()">退出登录</button>
+            <button id="logoutButton">退出登录</button>
         </div>
     </div>
 
     <script>
-        // ================== 常量与配置 ==================
+        // 配置
         const ADMIN_PASSWORD = 'hopeso_admin';
-        const REPO_OWNER = 'HGfds29';
-        const REPO_NAME = 'Hopeso-';
-        const CFG_DIR = 'cfg/';
-        const MAP_DIR = 'map/';
-        const ADMIN_FILE = CFG_DIR + '管理员.json';
-        const DATE_FILE = CFG_DIR + '地图日期.json';
-        const CONFIG_FILE = CFG_DIR + 'config.json';
+        const SUPABASE_URL = 'https://fnnikuyrxprbykyggxwy.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_e5JWjJVaHT9PvXtvuulh4A_OnjaQtvo';
+        const REST_URL = `${SUPABASE_URL}/rest/v1`;
+        const STORAGE_BUCKET = 'map_images';
 
-        let githubToken = localStorage.getItem('github_token') || '';
-
-        // ================== 安全 JSON 解析函数 ==================
-        async function fetchJSON(url, options = {}) {
-            const response = await fetch(url, options);
+        // 封装 REST 请求
+        async function supabaseFetch(path, options = {}) {
+            const headers = {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            const response = await fetch(`${REST_URL}/${path}`, { ...options, headers });
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status} ${response.statusText}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
-            const text = await response.text();
+            // 处理空响应体（PATCH、DELETE 成功时 Supabase 可能无返回内容）
+            const contentType = response.headers.get('content-type') || '';
+            const contentLength = response.headers.get('content-length');
+            if (contentLength === '0' || !contentType.includes('application/json')) {
+                return null;
+            }
             try {
-                return JSON.parse(text);
+                return await response.json();
             } catch (e) {
-                console.error('JSON解析失败，服务器返回:', text.substring(0, 200));
-                throw new Error('服务器返回的不是有效的 JSON 格式');
+                // 响应体为空或非 JSON 时返回 null，避免 "Unexpected end of JSON input"
+                return null;
             }
         }
 
-        // ================== 登录逻辑 ==================
+        // 登录逻辑
         function login() {
             const pwd = document.getElementById('passwordInput').value;
             if (pwd === ADMIN_PASSWORD) {
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('adminContent').classList.remove('hidden');
-                initAdminPanel();
+                document.getElementById('loginError').textContent = '';
+                loadAdminList();
+                loadDates();
+                loadMaintenanceStatus();
             } else {
                 document.getElementById('loginError').textContent = '密码错误，请重试';
             }
@@ -190,75 +112,39 @@
             document.getElementById('passwordInput').value = '';
         }
 
-        // ================== 初始化面板 ==================
-        function initAdminPanel() {
-            loadAdminList();
-            loadDates();
-            loadMaintenanceStatus();
-            updateVisitCount();
-            document.getElementById('githubTokenInput').value = githubToken;
-        }
-
-        // ================== Token 保存 ==================
-        function saveToken() {
-            githubToken = document.getElementById('githubTokenInput').value.trim();
-            if (githubToken) {
-                localStorage.setItem('github_token', githubToken);
-                document.getElementById('tokenStatus').textContent = '✅ Token 已保存（仅本地）';
-                document.getElementById('tokenStatus').className = 'success';
-            } else {
-                document.getElementById('tokenStatus').textContent = '❌ Token 不能为空';
-                document.getElementById('tokenStatus').className = 'error';
-            }
-        }
-
-        // ================== 加载管理员列表 ==================
+        // 加载管理员列表
         async function loadAdminList() {
             try {
-                const data = await fetchJSON(ADMIN_FILE);
-                const admins = data.admins || [];
+                const admins = await supabaseFetch('admins?select=*');
                 let html = '';
                 admins.forEach(a => {
-                    html += `<div class="admin-item">
-                        <span>${a.name}</span>
-                        ${a.role ? `<span>(${a.role})</span>` : ''}
-                        ${a.github ? `<a href="https://github.com/${a.github}" target="_blank">GitHub</a>` : ''}
-                        ${a.email ? `<a href="mailto:${a.email}">邮箱</a>` : ''}
-                    </div>`;
+                    html += `<div>${a.name} (${a.role || '未知角色'})</div>`;
                 });
                 document.getElementById('adminList').innerHTML = html || '暂无管理员';
             } catch (e) {
-                document.getElementById('adminList').innerHTML = `❌ 加载失败：${e.message}`;
+                document.getElementById('adminList').innerHTML = '加载失败：' + e.message;
             }
         }
 
-        // ================== 日期管理 ==================
+        // 日期管理
         let currentDates = [];
-
         async function loadDates() {
             try {
-                const data = await fetchJSON(DATE_FILE);
-                currentDates = Array.isArray(data) ? data : (data.dates || []);
+                const dates = await supabaseFetch('map_dates?select=date&order=date.desc');
+                currentDates = dates.map(d => d.date);
                 renderDateList();
             } catch (e) {
-                document.getElementById('dateList').innerHTML = `❌ 加载失败：${e.message}`;
+                document.getElementById('dateList').innerHTML = '加载失败：' + e.message;
             }
         }
-
         function renderDateList() {
             const div = document.getElementById('dateList');
             if (currentDates.length === 0) {
                 div.innerHTML = '暂无日期';
                 return;
             }
-            let html = '<ul>';
-            currentDates.forEach((date) => {
-                html += `<li><input type="checkbox" class="date-checkbox" value="${date}"> ${date}</li>`;
-            });
-            html += '</ul>';
-            div.innerHTML = html;
+            div.innerHTML = '<ul>' + currentDates.map(d => `<li>${d}</li>`).join('') + '</ul>';
         }
-
         function addDate() {
             const newDate = document.getElementById('newDateInput').value;
             if (!newDate) return;
@@ -271,196 +157,118 @@
                 document.getElementById('dateMessage').textContent = '日期已存在';
             }
         }
-
         async function saveDates() {
-            if (!githubToken) {
-                document.getElementById('dateMessage').textContent = '❌ 请先设置 GitHub Token';
-                return;
-            }
-            const selected = Array.from(document.querySelectorAll('.date-checkbox:checked')).map(cb => cb.value);
-            if (selected.length > 0) {
-                currentDates = currentDates.filter(d => !selected.includes(d));
-            }
-            const content = JSON.stringify(currentDates, null, 2);
             try {
-                const result = await updateFileViaGitHub(DATE_FILE, content, '更新地图日期列表');
-                if (result.ok) {
-                    document.getElementById('dateMessage').textContent = '✅ 日期列表已保存到服务器';
-                    document.getElementById('dateMessage').className = 'success';
-                    loadDates();
-                } else {
-                    throw new Error(result.message);
+                // 获取现有日期
+                const existing = await supabaseFetch('map_dates?select=date');
+                const existingSet = new Set(existing.map(d => d.date));
+                // 删除不再存在的日期
+                for (const date of existingSet) {
+                    if (!currentDates.includes(date)) {
+                        await supabaseFetch(`map_dates?date=eq.${date}`, { method: 'DELETE' });
+                    }
                 }
+                // 插入新日期
+                for (const date of currentDates) {
+                    if (!existingSet.has(date)) {
+                        await supabaseFetch('map_dates', {
+                            method: 'POST',
+                            body: JSON.stringify({ date })
+                        });
+                    }
+                }
+                document.getElementById('dateMessage').textContent = '保存成功';
+                loadDates();
             } catch (e) {
-                document.getElementById('dateMessage').textContent = '❌ 保存失败：' + e.message;
-                document.getElementById('dateMessage').className = 'error';
+                document.getElementById('dateMessage').textContent = '保存失败：' + e.message;
             }
         }
 
-        // ================== 地图上传 ==================
+        // 地图上传（使用 Storage API）
         async function uploadMap() {
             const fileInput = document.getElementById('mapFileInput');
             const date = document.getElementById('uploadDateInput').value;
-            if (!fileInput.files || !fileInput.files[0]) {
-                document.getElementById('uploadMessage').textContent = '请选择图片文件';
-                return;
-            }
-            if (!date) {
-                document.getElementById('uploadMessage').textContent = '请选择日期';
-                return;
-            }
-            if (!githubToken) {
-                document.getElementById('uploadMessage').textContent = '请先设置 GitHub Token';
+            if (!fileInput.files[0] || !date) {
+                document.getElementById('uploadMessage').textContent = '请选择文件和日期';
                 return;
             }
             const file = fileInput.files[0];
             const fileName = `map_${date}.png`;
-            const path = MAP_DIR + fileName;
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const base64 = e.target.result.split(',')[1];
-                try {
-                    const result = await uploadFileViaGitHub(path, base64, `上传地图 ${fileName}`);
-                    if (result.ok) {
-                        document.getElementById('uploadMessage').textContent = '✅ 地图上传成功';
-                        document.getElementById('uploadMessage').className = 'success';
-                    } else {
-                        throw new Error(result.message);
-                    }
-                } catch (err) {
-                    document.getElementById('uploadMessage').textContent = '❌ 上传失败：' + err.message;
-                    document.getElementById('uploadMessage').className = 'error';
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // ================== 查看 Issues ==================
-        async function loadIssues() {
-            if (!githubToken) {
-                document.getElementById('issuesList').textContent = '请先设置 Token';
-                return;
-            }
+            const formData = new FormData();
+            formData.append('file', file, fileName);
             try {
-                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues?state=open&per_page=10`, {
+                const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${fileName}`, {
+                    method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${githubToken}`,
-                        'Accept': 'application/vnd.github+json'
-                    }
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: formData
                 });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const issues = await res.json();
-                let html = '<ul>';
-                issues.forEach(issue => {
-                    html += `<li><a href="${issue.html_url}" target="_blank">#${issue.number} ${issue.title}</a></li>`;
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`上传失败: ${errorText}`);
+                }
+                // 写入数据库
+                await supabaseFetch('map_images', {
+                    method: 'POST',
+                    body: JSON.stringify({ date, image_path: fileName })
                 });
-                html += '</ul>';
-                document.getElementById('issuesList').innerHTML = html || '暂无 Issues';
+                document.getElementById('uploadMessage').textContent = '上传成功';
+                document.getElementById('uploadMessage').className = 'success';
             } catch (e) {
-                document.getElementById('issuesList').textContent = '❌ 加载失败：' + e.message;
+                document.getElementById('uploadMessage').textContent = '' + e.message;
+                document.getElementById('uploadMessage').className = 'error';
             }
         }
 
-        // ================== 维护模式 ==================
+        // 维护模式
         async function loadMaintenanceStatus() {
             try {
-                const data = await fetchJSON(CONFIG_FILE);
-                const status = data.maintenance ? '开启' : '关闭';
-                document.getElementById('maintenanceStatus').textContent = status;
+                const data = await supabaseFetch("site_config?key=eq.maintenance&select=value");
+                const value = data.length > 0 ? data[0].value : 'false';
+                document.getElementById('maintenanceStatus').textContent = value === 'true' ? '开启' : '关闭';
             } catch (e) {
-                document.getElementById('maintenanceStatus').textContent = '未知（文件不存在）';
+                document.getElementById('maintenanceStatus').textContent = '未知';
             }
         }
-
         async function toggleMaintenance() {
-            if (!githubToken) {
-                document.getElementById('maintenanceMessage').textContent = '请先设置 Token';
-                return;
-            }
             try {
-                const data = await fetchJSON(CONFIG_FILE);
-                data.maintenance = !data.maintenance;
-                const content = JSON.stringify(data, null, 2);
-                const result = await updateFileViaGitHub(CONFIG_FILE, content, '切换维护模式');
-                if (result.ok) {
-                    document.getElementById('maintenanceMessage').textContent = '✅ 维护模式已切换';
-                    loadMaintenanceStatus();
+                const data = await supabaseFetch("site_config?key=eq.maintenance&select=value");
+                const current = data.length > 0 ? data[0].value : 'false';
+                const newValue = current === 'true' ? 'false' : 'true';
+                if (data.length > 0) {
+                    // 记录已存在，使用 PATCH 更新
+                    await supabaseFetch('site_config?key=eq.maintenance', {
+                        method: 'PATCH',
+                        body: JSON.stringify({ value: newValue })
+                    });
                 } else {
-                    throw new Error(result.message);
+                    // 记录不存在，使用 POST 插入
+                    await supabaseFetch('site_config', {
+                        method: 'POST',
+                        body: JSON.stringify({ key: 'maintenance', value: newValue })
+                    });
                 }
+                loadMaintenanceStatus();
+                document.getElementById('maintenanceMessage').textContent = '已切换';
             } catch (e) {
-                document.getElementById('maintenanceMessage').textContent = '❌ 操作失败：' + e.message;
+                document.getElementById('maintenanceMessage').textContent = '操作失败：' + e.message;
             }
         }
 
-        // ================== 访问统计 ==================
-        function updateVisitCount() {
-            let count = localStorage.getItem('admin_visit_count') || 0;
-            count = parseInt(count) + 1;
-            localStorage.setItem('admin_visit_count', count);
-            document.getElementById('visitCount').textContent = count;
-        }
-
-        // ================== GitHub API 辅助函数 ==================
-        async function updateFileViaGitHub(path, content, commitMessage) {
-            let sha = null;
-            try {
-                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
-                    headers: { 'Authorization': `Bearer ${githubToken}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    sha = data.sha;
-                }
-            } catch (e) {}
-
-            const body = {
-                message: commitMessage,
-                content: btoa(unescape(encodeURIComponent(content))),
-                sha: sha
-            };
-            const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${githubToken}`,
-                    'Accept': 'application/vnd.github+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
+        // 事件绑定
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('loginButton').addEventListener('click', login);
+            document.getElementById('logoutButton').addEventListener('click', logout);
+            document.getElementById('addDateBtn').addEventListener('click', addDate);
+            document.getElementById('saveDatesBtn').addEventListener('click', saveDates);
+            document.getElementById('uploadMapBtn').addEventListener('click', uploadMap);
+            document.getElementById('toggleMaintenanceBtn').addEventListener('click', toggleMaintenance);
+            document.getElementById('passwordInput').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') login();
             });
-            const data = await res.json();
-            return { ok: res.ok, message: data.message };
-        }
-
-        async function uploadFileViaGitHub(path, base64Content, commitMessage) {
-            let sha = null;
-            try {
-                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
-                    headers: { 'Authorization': `Bearer ${githubToken}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    sha = data.sha;
-                }
-            } catch (e) {}
-
-            const body = {
-                message: commitMessage,
-                content: base64Content,
-                sha: sha
-            };
-            const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${githubToken}`,
-                    'Accept': 'application/vnd.github+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-            const data = await res.json();
-            return { ok: res.ok, message: data.message };
-        }
+        });
     </script>
 </body>
 </html>

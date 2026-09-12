@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站维护中</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0d1117;
+            color: #e6edf3;
+            font-family: "Microsoft YaHei", sans-serif;
+            text-align: center;
+        }
+        .maintenance-box {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        h1 { font-size: 28px; margin-bottom: 16px; color: #ffa600; }
+        p { font-size: 16px; color: #8b949e; line-height: 1.6; }
+        .emoji { font-size: 64px; margin-bottom: 20px; }
+        /* 仅针对本页"管理员"链接内的 span 实例 */
+        body > a > span {
+            color: #d4ff00;
+            font-family: Impact, Charcoal, sans-serif;
+            transform: rotate(360deg);
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            flex-direction: column;
+            display: grid;
+            position: absolute;
+            left: 1100px;
+            top: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-box">
+        <div class="emoji"></div>
+        <h1>网站维护中</h1>
+        <p>我们正在进行维护，请稍后再访问。</p>
+        <p>如有紧急情况，请联系管理员。</p>
+    </div>
+    <a href="admin.html" target="_blank" title="管理员页面">
+        <span>管理员</span>
+    </a>
+</body>
+</html>
